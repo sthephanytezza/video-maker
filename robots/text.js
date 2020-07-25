@@ -24,9 +24,13 @@ async function robot(content){
         // instância do Wikipedia
         const wikipediaAlgorithm = algorithmiaAutenticad.algo("web/WikipediaParser/0.1.2?timeout=300")
         //pipe busca no Wikipedia o termo desejado | await avisa que a função deve ser esperada para seguir o código
-        const wikipediaResponde = await wikipediaAlgorithm.pipe(content.searchTerm)
+        //em lang é atribuído a linguagem escolhida pela pessoa
+        const wikipediaResponse = await wikipediaAlgorithm.pipe({
+            "lang": content.lang,
+            "articleName": content.searchTerm
+        })
         //conteudo do Wikipedia  vai para variável
-        const wikipediaContent = wikipediaResponde.get()
+        const wikipediaContent = wikipediaResponse.get()
 
         content.sourceContentOriginal = wikipediaContent.content
         
