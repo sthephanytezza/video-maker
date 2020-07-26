@@ -1,45 +1,20 @@
-//importantando biblioteca
-const readline = require('readline-sync')
+const robot = require('./robots/input.js')
+
 const robots = {
-    text: require('./robots/text.js')
+    input: require('./robots/input.js'),
+    text: require('./robots/text.js'),
+    state: require('./robots/state.js')
 }
 
 async function start(){
-    // content guarda tudo que foi encontrado na busca
-    const content = {
-        maximumSentences: 7
-    }
+    
 
-    //termo de busca
-    content.searchTerm = askAndReturnSearchTerm()
-    content.prefix = askAndReturnPrefix()
-    content.lang = askAndReturnLanguage() 
-
+    robots.input()
     //passa para o robô o texto do content
-    await robots.text(content)
+    await robots.text()
 
-    function askAndReturnSearchTerm(){
-        //armazena o que será procurado na Wikipedia
-        return readline.question('Type a Wikipedia search term: ')
-    }
-
-    function askAndReturnPrefix(){
-        //select de opções que retorna uma chave como resultado
-        const prefixes = ['Who is', 'What is', 'The history of']
-        const selectedPrefixIndex = readline.keyInSelect(prefixes, 'Choose one option: ')
-        const selectedPrefixText = prefixes[selectedPrefixIndex]
-
-        return selectedPrefixText
-    }
-
-    function askAndReturnLanguage(){
-        const language = ['pt','en']
-        const selectedLangIndex = readline.keyInSelect(language,'Choice Language: ')
-        const selectedLangText = language[selectedLangIndex]
-        return selectedLangText
-    }
-
-    console.log(JSON.stringify(content, null, 4))
+    const content = robots.state.load()
+    console.dir(content, { depth: null } )
 }
 
 start()

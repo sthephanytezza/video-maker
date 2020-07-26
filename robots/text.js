@@ -8,14 +8,18 @@ const watsonApiKey = require('../credentials/watson-nlu.json').apikey
 const NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js')
 
 //instanciando o módulo para usar
-var nlu = new NaturalLanguageUnderstandingV1({
+const nlu = new NaturalLanguageUnderstandingV1({
   iam_apikey: watsonApiKey,
   version: '2018-04-05',
   url: 'https://gateway.watsonplatform.net/natural-language-understanding/api/'
 });
 
+const state = require('./state.js')
+
 //interface pública
-async function robot(content){
+async function robot(){
+    //carrega o content com o conteúdo salvo pelo robô
+    const content = state.load()
     //baixar conteúdo do Wikipedia
     await fetchContentFromWikipedia(content)
     // Limpar conteúdo
@@ -25,6 +29,8 @@ async function robot(content){
     limitMaximumSentences(content)
 
     await fetchKeywordsOfAllSentences(content)
+
+    state.save(content)
 
     //Função precisa ser assíncrona
     async function fetchContentFromWikipedia(content){
@@ -99,7 +105,7 @@ async function robot(content){
     async function fetchKeywordsOfAllSentences(sentence){
         for(const sentence of content.sentences){
             sentence.keywords = await fetchWatsonAndReturnKeywords(sentence.text)
-            
+
         }
     }
 
@@ -107,14 +113,14 @@ async function robot(content){
         return new Promise((resolve, reject) =>{
             nlu.analyze({
                 text: sentence,
-                features: {
+                 features: {
                     keywords: {}
                 }
             }, (error, response) => {
                 if (error) {
                     throw error
                 }
-    
+     
                 //array de textos das keywords
                 const keywords = response.keywords.map((keyword) => {
                     return keyword.text
