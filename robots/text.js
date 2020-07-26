@@ -1,6 +1,18 @@
 const algorithmia = require('algorithmia')
 const algorithmiaApiKey = require('../credentials/algotithmia.json').apiKey
 const sentenceBoundaryDetection = require('sbd')
+//importação do arquivo com a key
+const watsonApiKey = require('../credentials/watson-nlu.json').apikey
+
+//importação do módulo de linguagem natural
+const NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js')
+
+//instanciando o módulo para usar
+var nlu = new NaturalLanguageUnderstandingV1({
+  iam_apikey: watsonApiKey,
+  version: '2018-04-05',
+  url: 'https://gateway.watsonplatform.net/natural-language-understanding/api/'
+});
 
 //interface pública
 async function robot(content){
@@ -10,6 +22,9 @@ async function robot(content){
     sanitizeContent(content)
     // Quebrar o conteúdo em sentenças
     breakContentIntoSentences(content)
+    limitMaximumSentences(content)
+
+    await fetchKeywordsOfAllSentences(content)
 
     //Função precisa ser assíncrona
     async function fetchContentFromWikipedia(content){
@@ -61,7 +76,6 @@ async function robot(content){
         function removeDatesInParentheses(text){
             return text.replace(/\((?:\([^()]*\)|[^()])*\)/gm, '').replace(/  /g,' ')
         }
-
     }
 
     function breakContentIntoSentences(content){
@@ -76,7 +90,39 @@ async function robot(content){
                 images: []
             })
         })
+    }
 
+    function limitMaximumSentences(content){
+        content.sentences = content.sentences.slice(0, content.maximumSentences)
+    }
+
+    async function fetchKeywordsOfAllSentences(sentence){
+        for(const sentence of content.sentences){
+            sentence.keywords = await fetchWatsonAndReturnKeywords(sentence.text)
+            
+        }
+    }
+
+    async function fetchWatsonAndReturnKeywords(sentence){
+        return new Promise((resolve, reject) =>{
+            nlu.analyze({
+                text: sentence,
+                features: {
+                    keywords: {}
+                }
+            }, (error, response) => {
+                if (error) {
+                    throw error
+                }
+    
+                //array de textos das keywords
+                const keywords = response.keywords.map((keyword) => {
+                    return keyword.text
+                })
+    
+                resolve(keywords)
+            })
+        })
     }
 }
 

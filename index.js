@@ -6,11 +6,13 @@ const robots = {
 
 async function start(){
     // content guarda tudo que foi encontrado na busca
-    const content = {}
+    const content = {
+        maximumSentences: 7
+    }
 
     //termo de busca
     content.searchTerm = askAndReturnSearchTerm()
-    content.prefix = askAndReturnPrefix();
+    content.prefix = askAndReturnPrefix()
     content.lang = askAndReturnLanguage() 
 
     //passa para o robô o texto do content
@@ -37,7 +39,7 @@ async function start(){
         return selectedLangText
     }
 
-    console.log(content)
+    console.log(JSON.stringify(content, null, 4))
 }
 
 start()
